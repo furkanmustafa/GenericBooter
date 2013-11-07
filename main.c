@@ -111,7 +111,7 @@ corestart_main(uint32_t __unused, uint32_t machine_type, struct atag *atags)
     /*
      * Verify machine type.
      */
-    if (machine_type != MACH_TYPE_REALVIEW_PBA8) {
+    if (machine_type != MACH_TYPE_REALVIEW_PBA8 && machine_type != MACH_TYPE_RASPBERRYPI) {
         printf("********************************\n"
                "*                              *\n"
                "*  This unit is not supported  *\n"
@@ -119,7 +119,8 @@ corestart_main(uint32_t __unused, uint32_t machine_type, struct atag *atags)
                "********************************\n");
         printf("Machine type is %d, expected %d\n", machine_type,
                MACH_TYPE_REALVIEW_PBA8);
-        _locore_halt_system();
+       
+		_locore_halt_system();
     }
 
     /*
@@ -127,7 +128,7 @@ corestart_main(uint32_t __unused, uint32_t machine_type, struct atag *atags)
      */
     printf("=======================================\n"
            "::\n"
-           ":: GenericBooter for ARM RealView, Copyright 2013, winocm.\n"
+           ":: GenericBooter for RaspberryPi, based on work Copyright 2013, winocm.\n"
            "::\n"
            "::\tBUILD_TAG: %s\n"
            "::\n"
@@ -170,7 +171,7 @@ corestart_main(uint32_t __unused, uint32_t machine_type, struct atag *atags)
     if (!is_malloc_inited)
         panic("malloc not inited");
 
-    start_darwin();
+	start_darwin();
 
     panic("Nothing to do...\n");
     return;

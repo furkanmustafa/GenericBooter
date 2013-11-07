@@ -47,6 +47,51 @@
 
 #define barrier()               __asm__ __volatile__("": : :"memory");
 
+#define GPFSEL1 0x20200004
+#define GPSET0  0x2020001C
+#define GPCLR0  0x20200028
+#define GPPUD       0x20200094
+#define GPPUDCLK0   0x20200098
+
+
+
+#define UART0_BASE   0x20201000
+#define UART0_DR     (UART0_BASE+0x00)
+#define UART0_RSRECR (UART0_BASE+0x04)
+#define UART0_FR     (UART0_BASE+0x18)
+#define UART0_ILPR   (UART0_BASE+0x20)
+#define UART0_IBRD   (UART0_BASE+0x24)
+#define UART0_FBRD   (UART0_BASE+0x28)
+#define UART0_LCRH   (UART0_BASE+0x2C)
+#define UART0_CR     (UART0_BASE+0x30)
+#define UART0_IFLS   (UART0_BASE+0x34)
+#define UART0_IMSC   (UART0_BASE+0x38)
+#define UART0_RIS    (UART0_BASE+0x3C)
+#define UART0_MIS    (UART0_BASE+0x40)
+#define UART0_ICR    (UART0_BASE+0x44)
+#define UART0_DMACR  (UART0_BASE+0x48)
+#define UART0_ITCR   (UART0_BASE+0x80)
+#define UART0_ITIP   (UART0_BASE+0x84)
+#define UART0_ITOP   (UART0_BASE+0x88)
+#define UART0_TDR    (UART0_BASE+0x8C)
+
+typedef		unsigned int		uint32;
+extern void dummy(unsigned int);
+
+uint32 GET32( uint32 addr ) {
+	// Create a pointer to our location in memory.
+	volatile uint32* ptr = (volatile uint32*)( addr );
+	// Return the value.
+	return (uint32)(*ptr);
+}
+
+void PUT32( uint32 addr, uint32 value ) {
+	// Create a pointer to our location in memory.
+	volatile uint32* ptr = (volatile uint32*)( addr );
+	// Set the value.
+	*ptr = value;
+}
+
 /**
  * uart_putc
  *
@@ -62,12 +107,12 @@ void uart_putchar(int c)
     if (c == '\n')
         uart_putchar('\r');
 
-    while (AMBA_UART_FR(uart_base) & UART_FR_TXFF) {
-        /* Transmit FIFO full, wait */
-        barrier();
-    }
+	while(1)
+	{
+		if((GET32(UART0_FR)&0x20)==0) break;
+	}
+	PUT32(UART0_DR,c);
 
-    AMBA_UART_DR(uart_base) = c;
 }
 
 /**
@@ -77,7 +122,10 @@ void uart_putchar(int c)
  */
 int uart_getchar(void)
 {
-    return 'X';
+	for (int i = 0; i < 10; i++){
+		if((GET32(UART0_FR)&0x10)==0) break;
+	}
+	return(GET32(UART0_DR));
 }
 
 static void putc_wrapper(void *p, char c)
@@ -90,8 +138,35 @@ static void putc_wrapper(void *p, char c)
  *
  * Start debugging subsystems.
  */
+void uart_init ( void )
+{
+	unsigned int ra;
+	
+	PUT32(UART0_CR,0);
+	
+	ra=GET32(GPFSEL1);
+	ra&=~(7<<12); //gpio14
+	ra|=4<<12;    //alt0
+	ra&=~(7<<15); //gpio15
+	ra|=4<<15;    //alt0
+	PUT32(GPFSEL1,ra);
+	
+	PUT32(GPPUD,0);
+	for(ra=0;ra<150;ra++) dummy(ra);
+	PUT32(GPPUDCLK0,(1<<14)|(1<<15));
+	for(ra=0;ra<150;ra++) dummy(ra);
+	PUT32(GPPUDCLK0,0);
+	
+	PUT32(UART0_ICR,0x7FF);
+	PUT32(UART0_IBRD,1);
+	PUT32(UART0_FBRD,40);
+	PUT32(UART0_LCRH,0x70);
+	PUT32(UART0_CR,0x301);
+}
+
 void init_debug(void)
 {
+	uart_init();
     init_printf(NULL, putc_wrapper);
     printf("debug_init()\n");
 }

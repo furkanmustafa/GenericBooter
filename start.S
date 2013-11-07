@@ -110,15 +110,19 @@ EnterARM(locore_jump_to)
     mov     r0, #0
     mcr     p15, 0, r0, c7, c5, 4
 
-    isb     sy
-    dsb     sy
-
+   /* isb     sy
+    dsb     sy */
+	
     /* Point of no return */
     mov     lr, r9
     mov     r0, r1
     bx      lr    
 deadloop:
     b       .
+
+.globl dummy
+dummy:
+    bx lr
 
 .data
 .align 4

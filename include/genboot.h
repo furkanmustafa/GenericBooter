@@ -67,6 +67,7 @@ extern void _locore_halt_system(void);
 
 /* Machine. */
 #define MACH_TYPE_REALVIEW_PBA8		1897
+#define MACH_TYPE_RASPBERRYPI		3138
 
 /* BSD functions */
 extern void bzero(void *block, size_t nbytes);

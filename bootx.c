@@ -492,19 +492,24 @@ void start_darwin(void)
     bzero((void *)gBootArgs.physBase, (32 * 1024 * 1024));
 
     /* Initialize boot-args. */
-    assert(prepare_boot_args());
+  	printf("prepare_boot_args()...\n");
+	assert(prepare_boot_args());
 
     /* Map kernel. */
-    assert(prepare_kernel());
+	printf("prepare_kernel()...\n");
+	assert(prepare_kernel());
 
     /* Map device tree. */
-    assert(prepare_devicetree());
+   	printf("prepare_devicetree()...\n");
+	assert(prepare_devicetree());
 
     /* Enter ramdisk into /chosen/memory-map and flatten. */
-    assert(prepare_devicetree_stage2());
+	printf("prepare_devicetree_stage2()...\n");
+	assert(prepare_devicetree_stage2());
 
     /* Copy boot-args over to kernel region. */
-    assert((args = prepare_finalized_boot_args()) != NULL);
+	printf("prepare_finalized_boot_args()...\n");
+	assert((args = prepare_finalized_boot_args()) != NULL);
 
     /* Jump to the kernel. */
     start_routine = (kernel_start *) kernel_entrypoint;
